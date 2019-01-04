@@ -181,7 +181,7 @@ std::shared_ptr<BaseCardElement> ImageParser::Deserialize(ParseContext& context,
 std::shared_ptr<BaseCardElement>
 ImageParser::DeserializeWithoutCheckingType(ParseContext& context, const Json::Value& json)
 {
-    std::shared_ptr<Image> image = BaseCardElement::Deserialize<Image>(json);
+    std::shared_ptr<Image> image = BaseCardElement::Deserialize<Image>(context, json);
 
     image->SetUrl(ParseUtil::GetString(json, AdaptiveCardSchemaKey::Url, true));
     image->SetBackgroundColor(ValidateColor(ParseUtil::GetString(json, AdaptiveCardSchemaKey::BackgroundColor), context.warnings));

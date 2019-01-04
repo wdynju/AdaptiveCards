@@ -17,15 +17,6 @@ namespace AdaptiveSharedNamespace
         }
     }
 
-    void ParseUtil::ExpectString(const Json::Value& json)
-    {
-        if (!json.isString())
-        {
-            throw AdaptiveCardParseException(ErrorStatusCode::InvalidPropertyValue,
-                                             "The JSON element did not have the expected type 'string'");
-        }
-    }
-
     // TODO: Remove? This code path might not be desirable going forward depending on how we decide to support forward compat. Task 10893205
     std::string ParseUtil::GetTypeAsString(const Json::Value& json)
     {

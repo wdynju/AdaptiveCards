@@ -1,6 +1,6 @@
-
 #include "pch.h"
 #include "BaseActionElement.h"
+#include "BaseElementFallback.h"
 #include "ParseUtil.h"
 
 using namespace AdaptiveSharedNamespace;
@@ -75,7 +75,22 @@ std::string BaseActionElement::Serialize() const
 Json::Value BaseActionElement::SerializeToJsonValue() const
 {
     Json::Value root = GetAdditionalProperties();
-    root[AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Type)] = ActionTypeToString(m_type);
+
+    const auto fallbackType = GetFallbackType();
+    if (fallbackType == FallbackType::Drop)
+    {
+        root[AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Fallback)] = "drop";
+    }
+    else if (fallbackType == FallbackType::Content)
+    {
+        root[AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Fallback)] = GetFallbackContent()->SerializeToJsonValue();
+    }
+
+    if (!m_iconUrl.empty())
+    {
+        root[AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::IconUrl)] = m_iconUrl;
+    }
+
     root[AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Id)] = m_id;
 
     if (!m_title.empty())
@@ -88,10 +103,7 @@ Json::Value BaseActionElement::SerializeToJsonValue() const
         root[AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Sentiment)] = SentimentToString(m_sentiment);
     }
 
-    if (!m_iconUrl.empty())
-    {
-        root[AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::IconUrl)] = m_iconUrl;
-    }
+    root[AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Type)] = ActionTypeToString(m_type);
 
     return root;
 }
@@ -108,11 +120,13 @@ void BaseActionElement::SetAdditionalProperties(Json::Value const& value)
 
 void BaseActionElement::PopulateKnownPropertiesSet()
 {
-    m_knownProperties.insert({AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Type),
-                              AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Title),
-                              AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Id),
+    m_knownProperties.insert({AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Fallback),
                               AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::IconUrl),
-                              AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Sentiment)});
+                              AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Id),
+                              AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Requires),
+                              AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Sentiment),
+                              AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Title),
+                              AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Type)});
 }
 
 void BaseActionElement::GetResourceInformation(std::vector<RemoteResourceInformation>& resourceInfo)

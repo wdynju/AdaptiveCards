@@ -15,8 +15,6 @@ namespace AdaptiveSharedNamespace
     {
         void ThrowIfNotJsonObject(const Json::Value& json);
 
-        void ExpectString(const Json::Value& json);
-
         std::string GetTypeAsString(const Json::Value& json);
 
         std::string TryGetTypeAsString(const Json::Value& json);

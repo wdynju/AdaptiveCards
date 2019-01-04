@@ -10,8 +10,8 @@ namespace AdaptiveSharedNamespace
         ActionAlignment,
         ActionMode,
         ActionOrientation,
-        Actions,
         ActionSetConfig,
+        Actions,
         ActionsOrientation,
         AdaptiveCard,
         AllowCustomStyle,
@@ -30,14 +30,13 @@ namespace AdaptiveSharedNamespace
         ButtonSpacing,
         Card,
         Center,
-        Choices,
         ChoiceSet,
+        Choices,
         Color,
         ColorConfig,
-        ForegroundColors,
         Column,
-        Columns,
         ColumnSet,
+        Columns,
         Container,
         ContainerStyles,
         Dark,
@@ -49,14 +48,16 @@ namespace AdaptiveSharedNamespace
         ElementId,
         Emphasis,
         ExtraLarge,
-        Facts,
         FactSet,
+        Facts,
+        Fallback,
         FallbackText,
         FontFamily,
         FontSizes,
         FontStyle,
         FontStyles,
         FontWeights,
+        ForegroundColors,
         Good,
         Height,
         HorizontalAlignment,
@@ -66,14 +67,14 @@ namespace AdaptiveSharedNamespace
         Id,
         Image,
         ImageBaseUrl,
-        Images,
         ImageSet,
         ImageSize,
         ImageSizes,
+        Images,
         InlineAction,
         InlineTopMargin,
-        IsMultiline,
         IsMultiSelect,
+        IsMultiline,
         IsRequired,
         IsSelected,
         IsSubtle,
@@ -103,6 +104,7 @@ namespace AdaptiveSharedNamespace
         Placeholder,
         PlayButton,
         Poster,
+        Requires,
         Right,
         SelectAction,
         Sentiment,
@@ -380,4 +382,12 @@ namespace AdaptiveSharedNamespace
         Stretch
     };
     DECLARE_ADAPTIVECARD_ENUM(HeightType);
+
+    // Important: "Content" below is a placeholder for a JSON value -- we can't perform automatic mapping.
+    enum class FallbackType
+    {
+        None,
+        Drop,
+        Content
+    };
 }

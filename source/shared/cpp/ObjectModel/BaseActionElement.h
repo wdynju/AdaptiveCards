@@ -5,10 +5,11 @@
 #include "json/json.h"
 #include "ParseUtil.h"
 #include "RemoteResourceInformation.h"
+#include "BaseElementFallback.h"
 
 namespace AdaptiveSharedNamespace
 {
-    class BaseActionElement
+    class BaseActionElement : public BaseElementFallback<BaseActionElement>
     {
     public:
         BaseActionElement(ActionType type);
@@ -39,39 +40,63 @@ namespace AdaptiveSharedNamespace
         std::string Serialize() const;
         virtual Json::Value SerializeToJsonValue() const;
 
-        template<typename T> static std::shared_ptr<T> Deserialize(const Json::Value& json);
+        template<typename T> static std::shared_ptr<T> Deserialize(ParseContext& context, const Json::Value& json);
 
         Json::Value GetAdditionalProperties() const;
         void SetAdditionalProperties(Json::Value const& additionalProperties);
 
         virtual void GetResourceInformation(std::vector<RemoteResourceInformation>& resourceUris);
 
+    protected:
+        std::unordered_set<std::string> m_knownProperties;
+
     private:
         virtual void PopulateKnownPropertiesSet();
 
-        ActionType m_type;
         std::string m_typeString;
         std::string m_title;
         std::string m_id;
         std::string m_iconUrl;
-        Sentiment m_sentiment;
         Json::Value m_additionalProperties;
-
-    protected:
-        std::unordered_set<std::string> m_knownProperties;
+        ActionType m_type;
+        Sentiment m_sentiment;
     };
 
-    template<typename T> std::shared_ptr<T> BaseActionElement::Deserialize(const Json::Value& json)
+    template<typename T> std::shared_ptr<T> BaseActionElement::Deserialize(ParseContext& context, const Json::Value& json)
     {
         std::shared_ptr<T> cardElement = std::make_shared<T>();
         std::shared_ptr<BaseActionElement> baseActionElement = cardElement;
 
         ParseUtil::ThrowIfNotJsonObject(json);
 
-        baseActionElement->SetTitle(ParseUtil::GetString(json, AdaptiveCardSchemaKey::Title));
-        baseActionElement->SetId(ParseUtil::GetString(json, AdaptiveCardSchemaKey::Id));
+        // TODO: Support fallback
+        const auto fallbackValue = ParseUtil::ExtractJsonValue(json, AdaptiveCardSchemaKey::Fallback, false);
+        if (!fallbackValue.empty())
+        {
+            if (fallbackValue.isString())
+            {
+                auto fallbackStringValue = ParseUtil::ToLowercase(fallbackValue.asString());
+                if (fallbackStringValue == "drop")
+                {
+                    baseActionElement->SetFallbackType(FallbackType::Drop);
+                }
+                // TODO: else throw?
+            }
+            else if (fallbackValue.isObject())
+            {
+                // fallback value is a JSON object. parse it and add it as fallback content.
+                // TODO: reconcile IDs for fallback content
+                // AddId(*element, *(context.elementIds));
+                baseActionElement->SetFallbackContent(ParseUtil::GetActionFromJsonValue(context, fallbackValue));
+            }
+        }
+
         baseActionElement->SetIconUrl(ParseUtil::GetString(json, AdaptiveCardSchemaKey::IconUrl));
-        baseActionElement->SetSentiment(ParseUtil::GetEnumValue<Sentiment>(json, AdaptiveCardSchemaKey::Sentiment, Sentiment::Default, SentimentFromString));
+        baseActionElement->SetId(ParseUtil::GetString(json, AdaptiveCardSchemaKey::Id));
+        // TODO: Support requires
+        baseActionElement->SetSentiment(
+            ParseUtil::GetEnumValue<Sentiment>(json, AdaptiveCardSchemaKey::Sentiment, Sentiment::Default, SentimentFromString));
+        baseActionElement->SetTitle(ParseUtil::GetString(json, AdaptiveCardSchemaKey::Title));
 
         // Walk all properties and put any unknown ones in the additional properties json
         for (auto it = json.begin(); it != json.end(); ++it)

@@ -171,11 +171,11 @@ void TextBlock::SetLanguage(const std::string& value)
     m_language = value;
 }
 
-std::shared_ptr<BaseCardElement> TextBlockParser::Deserialize(ParseContext&, const Json::Value& json)
+std::shared_ptr<BaseCardElement> TextBlockParser::Deserialize(ParseContext& context, const Json::Value& json)
 {
     ParseUtil::ExpectTypeString(json, CardElementType::TextBlock);
 
-    std::shared_ptr<TextBlock> textBlock = BaseCardElement::Deserialize<TextBlock>(json);
+    std::shared_ptr<TextBlock> textBlock = BaseCardElement::Deserialize<TextBlock>(context, json);
 
     textBlock->SetText(ParseUtil::GetString(json, AdaptiveCardSchemaKey::Text, true));
     textBlock->SetTextSize(ParseUtil::GetEnumValue<TextSize>(json, AdaptiveCardSchemaKey::Size, TextSize::Default, TextSizeFromString));

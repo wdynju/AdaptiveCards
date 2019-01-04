@@ -17,7 +17,7 @@ namespace AdaptiveSharedNamespace
         std::string GetId() const override;
         void SetId(const std::string& value) override;
 
-        template<typename T> static std::shared_ptr<T> Deserialize(const Json::Value& json);
+        template<typename T> static std::shared_ptr<T> Deserialize(ParseContext& context, const Json::Value& json);
 
         bool GetIsRequired() const;
         void SetIsRequired(const bool isRequired);
@@ -29,9 +29,9 @@ namespace AdaptiveSharedNamespace
         bool m_isRequired;
     };
 
-    template<typename T> std::shared_ptr<T> BaseInputElement::Deserialize(const Json::Value& json)
+    template<typename T> std::shared_ptr<T> BaseInputElement::Deserialize(ParseContext &context, const Json::Value& json)
     {
-        std::shared_ptr<T> baseInputElement = BaseCardElement::Deserialize<T>(json);
+        std::shared_ptr<T> baseInputElement = BaseCardElement::Deserialize<T>(context, json);
 
         ParseUtil::ThrowIfNotJsonObject(json);
 

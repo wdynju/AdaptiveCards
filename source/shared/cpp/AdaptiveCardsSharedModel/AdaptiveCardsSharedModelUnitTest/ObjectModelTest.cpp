@@ -4,6 +4,8 @@
 #include "TextBlock.h"
 #include "SharedAdaptiveCard.h"
 #include "ShowCardAction.h"
+#include "SubmitAction.h"
+#include "OpenUrlAction.h"
 #include "ParseContext.h"
 #include "ChoiceSetInput.h"
 #include "ToggleInput.h"
@@ -451,6 +453,85 @@ namespace AdaptiveCardsSharedModelUnitTest
             runWrapTest<ToggleInput>(body, 0, true);
             // default value test
             runWrapTest<ToggleInput>(body, 1, false);
+        }
+
+        TEST_METHOD(ElementFallbackSerializationTest)
+        {
+            std::string cardStr = "{\
+                \"$schema\": \"http://adaptivecards.io/schemas/adaptive-card.json\",\
+                \"type\" : \"AdaptiveCard\",\
+                \"version\" : \"1.2\",\
+                \"body\" : [\
+                    {\
+                            \"type\": \"TextBlock\",\
+                            \"text\" : \"TextBlock with fallback drop\",\
+                            \"fallback\" : \"drop\"\
+                    },\
+                    {\
+                            \"type\": \"TextBlock\",\
+                            \"text\" : \"TextBlock with fallback content\",\
+                            \"fallback\" : \
+                            {\
+                                    \"type\": \"TextBlock\",\
+                                    \"text\" : \"fallback content goes here\"\
+                            }\
+                    }\
+                ]\
+            }";
+            auto parseResult = AdaptiveCard::DeserializeFromString(cardStr, "1.2");
+            auto card = parseResult->GetAdaptiveCard();
+            auto body = card->GetBody();
+            auto textBlock1 = std::static_pointer_cast<TextBlock>(body.at(0));
+            Assert::IsTrue(FallbackType::Drop == textBlock1->GetFallbackType(), L"Drop type");
+            auto textBlock2 = std::static_pointer_cast<TextBlock>(body.at(1));
+            Assert::IsTrue(FallbackType::Content == textBlock2->GetFallbackType(), L"Content type");
+            auto fallbackTextBlock = std::static_pointer_cast<TextBlock>(textBlock2->GetFallbackContent());
+            Assert::AreEqual(fallbackTextBlock->GetText().c_str(), "fallback content goes here");
+        }
+
+        TEST_METHOD(ActionFallbackSerializationTest)
+        {
+            // Card without card-level selectAction
+            std::string cardStr = "{\
+                \"$schema\": \"http://adaptivecards.io/schemas/adaptive-card.json\",\
+                \"type\" : \"AdaptiveCard\",\
+                \"version\" : \"1.2\",\
+                \"body\" : [\
+                    {\
+                            \"type\": \"TextBlock\",\
+                            \"text\" : \"test text\"\
+                    }\
+                ],\
+               	\"actions\": [\
+               		{\
+               			\"type\": \"Action.Submit\",\
+               			\"title\": \"Drop Test\",\
+                        \"fallback\": \"drop\"\
+               		},\
+               		{\
+               			\"type\": \"Action.OpenUrl\",\
+               			\"title\": \"Content Test\",\
+                        \"url\": \"http://example.com/\",\
+                        \"fallback\": \
+                        {\
+               			    \"type\": \"Action.OpenUrl\",\
+               			    \"title\": \"Fallback content\",\
+                            \"url\": \"http://example.com/fallback/\"\
+                        }\
+               		}\
+               	]\
+            }";
+            auto parseResult = AdaptiveCard::DeserializeFromString(cardStr, "1.2");
+            auto card = parseResult->GetAdaptiveCard();
+            auto actions = card->GetActions();
+            auto submitAction = std::static_pointer_cast<SubmitAction>(actions.at(0));
+            Assert::IsTrue(FallbackType::Drop == submitAction->GetFallbackType(), L"Drop type");
+            auto openUrlAction = std::static_pointer_cast<OpenUrlAction>(actions.at(1));
+            Assert::IsTrue(FallbackType::Content == openUrlAction->GetFallbackType(), L"Content type");
+            auto fallbackAction = std::static_pointer_cast<OpenUrlAction>(openUrlAction->GetFallbackContent());
+            Assert::IsTrue(fallbackAction->GetElementType() == ActionType::OpenUrl, L"openurl type check");
+            Assert::AreEqual(fallbackAction->GetTitle().c_str(), "Fallback content", L"title comparison");
+            Assert::AreEqual(fallbackAction->GetUrl().c_str(), "http://example.com/fallback/", L"url comparison");
         }
     };
 }

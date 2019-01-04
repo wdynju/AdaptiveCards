@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "BaseCardElement.h"
+#include "BaseElementFallback.h"
 #include "ShowCardAction.h"
 #include "OpenUrlAction.h"
 #include "ParseUtil.h"
@@ -8,8 +9,8 @@
 using namespace AdaptiveSharedNamespace;
 
 BaseCardElement::BaseCardElement(CardElementType type, Spacing spacing, bool separator, HeightType height) :
-    m_type(type), m_spacing(spacing), m_typeString(CardElementTypeToString(type)), m_separator(separator),
-    m_height(height), m_isVisible(true)
+    m_type(type), m_spacing(spacing), m_typeString(CardElementTypeToString(type)), m_additionalProperties(),
+    m_height(height), m_separator(separator), m_isVisible(true)
 {
     PopulateKnownPropertiesSet();
 }
@@ -23,11 +24,13 @@ BaseCardElement::BaseCardElement(CardElementType type) :
 
 void BaseCardElement::PopulateKnownPropertiesSet()
 {
-    m_knownProperties.insert({AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Type),
-                              AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Spacing),
-                              AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Separator),
+    m_knownProperties.insert({AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Fallback),
                               AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Height),
-                              AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::IsVisible)});
+                              AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::IsVisible),
+                              AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Separator),
+                              AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Spacing),
+                              AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Requires),
+                              AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Type)});
 }
 
 std::string BaseCardElement::GetElementTypeString() const
