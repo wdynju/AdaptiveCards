@@ -16,11 +16,6 @@ namespace AdaptiveSharedNamespace
         {
         }
 
-        virtual void SetFallbackType(FallbackType fallbackType)
-        {
-            m_fallbackType = fallbackType;
-        }
-
         virtual FallbackType GetFallbackType() const
         {
             return m_fallbackType;
@@ -36,14 +31,47 @@ namespace AdaptiveSharedNamespace
             return m_fallbackContent;
         }
 
-        virtual void SetFallbackContent(std::shared_ptr<T> content)
+        static void ParseFallbackAndRequires(ParseContext& context, const Json::Value& json, _Inout_ std::shared_ptr<T> baseElement)
         {
-            // TODO: asserts?
-            SetFallbackType(FallbackType::Content);
-            m_fallbackContent = content;
+            ParseFallback(context, json, baseElement);
+            ParseRequires(context, json, baseElement);
         }
 
     private:
+        static void ParseFallback(ParseContext& context, const Json::Value& json, _Inout_ std::shared_ptr<T> baseElement)
+        {
+            const auto fallbackValue = ParseUtil::ExtractJsonValue(json, AdaptiveCardSchemaKey::Fallback, false);
+            if (!fallbackValue.empty())
+            {
+                if (fallbackValue.isString())
+                {
+                    auto fallbackStringValue = ParseUtil::ToLowercase(fallbackValue.asString());
+                    if (fallbackStringValue == "drop")
+                    {
+                        baseElement->m_fallbackType = FallbackType::Drop;
+                        return;
+                    }
+                }
+                else if (fallbackValue.isObject())
+                {
+                    // fallback value is a JSON object. parse it and add it as fallback content.
+                    std::shared_ptr<T> fallbackElement;
+                    T::ParseJsonObject(context, fallbackValue, fallbackElement);
+                    if (fallbackElement)
+                    {
+                        baseElement->m_fallbackType = FallbackType::Content;
+                        baseElement->m_fallbackContent = fallbackElement;
+                        return;
+                    }
+                }
+                throw AdaptiveCardParseException(ErrorStatusCode::InvalidPropertyValue, "Invalid value for fallback");
+            }
+        }
+
+        static void ParseRequires(ParseContext& /*context*/, const Json::Value& /*json*/, _Inout_ std::shared_ptr<T> /*baseElement*/)
+        {
+        }
+
         std::unordered_map<std::string, std::string> m_requires;
         std::shared_ptr<T> m_fallbackContent;
         FallbackType m_fallbackType;

@@ -160,3 +160,25 @@ void BaseCardElement::GetResourceInformation(std::vector<RemoteResourceInformati
 {
     return;
 }
+
+void BaseCardElement::ParseJsonObject(ParseContext& context, const Json::Value& json, std::shared_ptr<BaseCardElement>& element)
+{
+    std::string typeString = ParseUtil::GetTypeAsString(json);
+    std::shared_ptr<BaseCardElementParser> parser = context.elementParserRegistration->GetParser(typeString);
+
+    if (parser == nullptr)
+    {
+        parser = context.elementParserRegistration->GetParser("Unknown");
+    }
+
+    auto parsedElement = parser->Deserialize(context, json);
+    if (parsedElement != nullptr)
+    {
+        // TODO: reconcile IDs for fallback content
+        // AddId(*element, *(context.elementIds));
+        element = parsedElement;
+        return;
+    }
+
+    throw AdaptiveCardParseException(ErrorStatusCode::InvalidPropertyValue, "Unable to parse element of type " + typeString);
+}

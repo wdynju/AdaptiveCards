@@ -53,8 +53,11 @@ namespace AdaptiveSharedNamespace
 
         virtual void GetResourceInformation(std::vector<RemoteResourceInformation>& resourceUris);
 
+        static void ParseJsonObject(ParseContext& context, const Json::Value& json, std::shared_ptr<BaseCardElement>& element);
+
     protected:
         static Json::Value SerializeSelectAction(const std::shared_ptr<BaseActionElement> selectAction);
+
         std::unordered_set<std::string> m_knownProperties;
 
     private:
@@ -77,45 +80,12 @@ namespace AdaptiveSharedNamespace
 
         ParseUtil::ThrowIfNotJsonObject(json);
 
-        // TODO: add fallback content
-        const auto fallbackValue = ParseUtil::ExtractJsonValue(json, AdaptiveCardSchemaKey::Fallback, false);
-        if (!fallbackValue.empty())
-        {
-            if (fallbackValue.isString())
-            {
-                auto fallbackStringValue = ParseUtil::ToLowercase(fallbackValue.asString());
-                if (fallbackStringValue == "drop")
-                {
-                    baseCardElement->SetFallbackType(FallbackType::Drop);
-                }
-                // TODO: else throw?
-            }
-            else if (fallbackValue.isObject())
-            {
-                // fallback value is a JSON object. parse it and add it as fallback content.
-                std::string typeString = ParseUtil::GetTypeAsString(fallbackValue);
-                std::shared_ptr<BaseCardElementParser> parser = context.elementParserRegistration->GetParser(typeString);
-
-                if (parser == nullptr)
-                {
-                    parser = context.elementParserRegistration->GetParser("Unknown");
-                }
-
-                auto element = parser->Deserialize(context, fallbackValue);
-                if (element != nullptr)
-                {
-                    // TODO: reconcile IDs for fallback content
-                    // AddId(*element, *(context.elementIds));
-                    baseCardElement->SetFallbackContent(element);
-                }
-            }
-        }
+        ParseFallbackAndRequires(context, json, baseCardElement);
 
         baseCardElement->SetHeight(
             ParseUtil::GetEnumValue<HeightType>(json, AdaptiveCardSchemaKey::Height, HeightType::Auto, HeightTypeFromString));
         baseCardElement->SetId(ParseUtil::GetString(json, AdaptiveCardSchemaKey::Id));
         baseCardElement->SetIsVisible(ParseUtil::GetBool(json, AdaptiveCardSchemaKey::IsVisible, true));
-        // TODO: add requires
         baseCardElement->SetSeparator(ParseUtil::GetBool(json, AdaptiveCardSchemaKey::Separator, false));
         baseCardElement->SetSpacing(
             ParseUtil::GetEnumValue<Spacing>(json, AdaptiveCardSchemaKey::Spacing, Spacing::Default, SpacingFromString));
@@ -123,7 +93,7 @@ namespace AdaptiveSharedNamespace
         // Walk all properties and put any unknown ones in the additional properties json
         for (auto it = json.begin(); it != json.end(); ++it)
         {
-            std::string key = it.key().asCString();
+            const std::string key { it.key().asCString() };
             if (baseCardElement->m_knownProperties.find(key) == baseCardElement->m_knownProperties.end())
             {
                 baseCardElement->m_additionalProperties[key] = *it;

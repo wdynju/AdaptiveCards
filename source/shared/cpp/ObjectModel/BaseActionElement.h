@@ -47,6 +47,8 @@ namespace AdaptiveSharedNamespace
 
         virtual void GetResourceInformation(std::vector<RemoteResourceInformation>& resourceUris);
 
+        static void ParseJsonObject(ParseContext& context, const Json::Value& json, std::shared_ptr<BaseActionElement>& element);
+
     protected:
         std::unordered_set<std::string> m_knownProperties;
 
@@ -69,27 +71,7 @@ namespace AdaptiveSharedNamespace
 
         ParseUtil::ThrowIfNotJsonObject(json);
 
-        // TODO: Support fallback
-        const auto fallbackValue = ParseUtil::ExtractJsonValue(json, AdaptiveCardSchemaKey::Fallback, false);
-        if (!fallbackValue.empty())
-        {
-            if (fallbackValue.isString())
-            {
-                auto fallbackStringValue = ParseUtil::ToLowercase(fallbackValue.asString());
-                if (fallbackStringValue == "drop")
-                {
-                    baseActionElement->SetFallbackType(FallbackType::Drop);
-                }
-                // TODO: else throw?
-            }
-            else if (fallbackValue.isObject())
-            {
-                // fallback value is a JSON object. parse it and add it as fallback content.
-                // TODO: reconcile IDs for fallback content
-                // AddId(*element, *(context.elementIds));
-                baseActionElement->SetFallbackContent(ParseUtil::GetActionFromJsonValue(context, fallbackValue));
-            }
-        }
+        ParseFallbackAndRequires(context, json, baseActionElement);
 
         baseActionElement->SetIconUrl(ParseUtil::GetString(json, AdaptiveCardSchemaKey::IconUrl));
         baseActionElement->SetId(ParseUtil::GetString(json, AdaptiveCardSchemaKey::Id));

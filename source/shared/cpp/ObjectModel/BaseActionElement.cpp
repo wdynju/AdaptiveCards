@@ -139,3 +139,8 @@ void BaseActionElement::GetResourceInformation(std::vector<RemoteResourceInforma
         resourceInfo.push_back(imageResourceInfo);
     }
 }
+
+void BaseActionElement::ParseJsonObject(ParseContext& context, const Json::Value& json, std::shared_ptr<BaseActionElement>& baseElement)
+{
+    baseElement = ParseUtil::GetActionFromJsonValue(context, json);
+}

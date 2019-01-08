@@ -335,23 +335,9 @@ namespace AdaptiveSharedNamespace
 
         for (const auto& curJsonValue : elementArray)
         {
-            // Get the element's type
-            std::string typeString = GetTypeAsString(curJsonValue);
-
-            // Use the parser that maps to the type
-            std::shared_ptr<BaseCardElementParser> parser = context.elementParserRegistration->GetParser(typeString);
-
-            if (parser == nullptr)
-            {
-                parser = context.elementParserRegistration->GetParser("Unknown");
-            }
-
-            auto element = parser->Deserialize(context, curJsonValue);
-            if (element != nullptr)
-            {
-                AddId(*element, *(context.elementIds));
-                elements.push_back(element);
-            }
+            std::shared_ptr<BaseCardElement> curElement;
+            BaseCardElement::ParseJsonObject(context, curJsonValue, curElement);
+            elements.push_back(curElement);
         }
 
         return std::move(elements);
