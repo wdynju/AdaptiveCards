@@ -76,15 +76,7 @@ Json::Value BaseActionElement::SerializeToJsonValue() const
 {
     Json::Value root = GetAdditionalProperties();
 
-    const auto fallbackType = GetFallbackType();
-    if (fallbackType == FallbackType::Drop)
-    {
-        root[AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Fallback)] = "drop";
-    }
-    else if (fallbackType == FallbackType::Content)
-    {
-        root[AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Fallback)] = GetFallbackContent()->SerializeToJsonValue();
-    }
+    SerializeFallbackAndRequires(root);
 
     if (!m_iconUrl.empty())
     {

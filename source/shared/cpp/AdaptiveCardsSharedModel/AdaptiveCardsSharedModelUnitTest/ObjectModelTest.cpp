@@ -487,6 +487,9 @@ namespace AdaptiveCardsSharedModelUnitTest
             Assert::IsTrue(FallbackType::Content == textBlock2->GetFallbackType(), L"Content type");
             auto fallbackTextBlock = std::static_pointer_cast<TextBlock>(textBlock2->GetFallbackContent());
             Assert::AreEqual(fallbackTextBlock->GetText().c_str(), "fallback content goes here");
+            auto serializedCard = card->Serialize();
+            Assert::AreEqual(serializedCard.c_str(),
+                "{\"actions\":[],\"body\":[{\"fallback\":\"drop\",\"text\":\"TextBlock with fallback drop\",\"type\":\"TextBlock\"},{\"fallback\":{\"text\":\"fallback content goes here\",\"type\":\"TextBlock\"},\"text\":\"TextBlock with fallback content\",\"type\":\"TextBlock\"}],\"type\":\"AdaptiveCard\",\"version\":\"1.2\"}\n");
         }
 
         TEST_METHOD(ActionFallbackSerializationTest)
@@ -532,6 +535,9 @@ namespace AdaptiveCardsSharedModelUnitTest
             Assert::IsTrue(fallbackAction->GetElementType() == ActionType::OpenUrl, L"openurl type check");
             Assert::AreEqual(fallbackAction->GetTitle().c_str(), "Fallback content", L"title comparison");
             Assert::AreEqual(fallbackAction->GetUrl().c_str(), "http://example.com/fallback/", L"url comparison");
+            auto serializedCard = card->Serialize();
+            Assert::AreEqual(serializedCard.c_str(),
+                "{\"actions\":[{\"fallback\":\"drop\",\"id\":\"\",\"title\":\"Drop Test\",\"type\":\"Action.Submit\"},{\"fallback\":{\"id\":\"\",\"title\":\"Fallback content\",\"type\":\"Action.OpenUrl\",\"url\":\"http://example.com/fallback/\"},\"id\":\"\",\"title\":\"Content Test\",\"type\":\"Action.OpenUrl\",\"url\":\"http://example.com/\"}],\"body\":[{\"text\":\"test text\",\"type\":\"TextBlock\"}],\"type\":\"AdaptiveCard\",\"version\":\"1.2\"}\n");
         }
 
         TEST_METHOD(FallbackDuplicateTest)

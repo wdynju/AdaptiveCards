@@ -31,6 +31,12 @@ namespace AdaptiveSharedNamespace
             return m_fallbackContent;
         }
 
+        virtual void SerializeFallbackAndRequires(Json::Value& root) const
+        {
+            SerializeFallback(root);
+            SerializeRequires(root);
+        }
+
         static void ParseFallbackAndRequires(ParseContext& context, const Json::Value& json, _Inout_ std::shared_ptr<T> baseElement)
         {
             ParseFallback(context, json, baseElement);
@@ -38,6 +44,23 @@ namespace AdaptiveSharedNamespace
         }
 
     private:
+
+        void SerializeFallback(Json::Value& root) const
+        {
+            if (m_fallbackType == FallbackType::Drop)
+            {
+                root[AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Fallback)] = "drop";
+            }
+            else if (m_fallbackType == FallbackType::Content)
+            {
+                root[AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Fallback)] = m_fallbackContent->SerializeToJsonValue();
+            }
+        }
+
+        void SerializeRequires(Json::Value& /*root*/) const
+        {
+        }
+
         static void ParseFallback(ParseContext& context, const Json::Value& json, _Inout_ std::shared_ptr<T> baseElement)
         {
             const auto fallbackValue = ParseUtil::ExtractJsonValue(json, AdaptiveCardSchemaKey::Fallback, false);
