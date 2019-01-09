@@ -533,5 +533,57 @@ namespace AdaptiveCardsSharedModelUnitTest
             Assert::AreEqual(fallbackAction->GetTitle().c_str(), "Fallback content", L"title comparison");
             Assert::AreEqual(fallbackAction->GetUrl().c_str(), "http://example.com/fallback/", L"url comparison");
         }
+
+        TEST_METHOD(FallbackDuplicateTest)
+        {
+            // Card without card-level selectAction
+            std::string cardStr = R"card({
+                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                "type" : "AdaptiveCard",
+                "version" : "1.2",
+                "body" : [
+                    {
+                        "type": "TextBlock",
+                        "text" : "1",
+                        "id": "1"
+                    },
+                    {
+                        "type": "Container",
+                        "id": "2",
+                        "items": [
+                            {
+                                "type": "TextBlock",
+                                "text" : "3",
+                                "id": "3",
+                                "fallback": {
+                                    "type": "TextBlock",
+                                    "text" : "3 fallback (this is okay)",
+                                    "id": "3"
+                                }
+                            },
+                            {
+                                "type": "TextBlock",
+                                "text" : "4",
+                                "id": "4",
+                                "fallback": {
+                                    "type": "Container",
+                                    "id": "4",
+                                    "items": [
+                                        {
+                                            "type": "TextBlock",
+                                            "text" : "4 fallback container item. id is 3. this is *not* okay",
+                                            "id": "3"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ]
+            })card";
+            auto parseResult = AdaptiveCard::DeserializeFromString(cardStr, "1.2");
+            auto card = parseResult->GetAdaptiveCard();
+            auto body = card->GetBody();
+        }
     };
 }
