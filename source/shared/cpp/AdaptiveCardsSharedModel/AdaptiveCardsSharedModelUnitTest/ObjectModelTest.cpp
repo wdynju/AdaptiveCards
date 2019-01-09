@@ -457,27 +457,27 @@ namespace AdaptiveCardsSharedModelUnitTest
 
         TEST_METHOD(ElementFallbackSerializationTest)
         {
-            std::string cardStr = "{\
-                \"$schema\": \"http://adaptivecards.io/schemas/adaptive-card.json\",\
-                \"type\" : \"AdaptiveCard\",\
-                \"version\" : \"1.2\",\
-                \"body\" : [\
-                    {\
-                            \"type\": \"TextBlock\",\
-                            \"text\" : \"TextBlock with fallback drop\",\
-                            \"fallback\" : \"drop\"\
-                    },\
-                    {\
-                            \"type\": \"TextBlock\",\
-                            \"text\" : \"TextBlock with fallback content\",\
-                            \"fallback\" : \
-                            {\
-                                    \"type\": \"TextBlock\",\
-                                    \"text\" : \"fallback content goes here\"\
-                            }\
-                    }\
-                ]\
-            }";
+            std::string cardStr = R"card({
+                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                "type" : "AdaptiveCard",
+                "version" : "1.2",
+                "body" : [
+                    {
+                        "type": "TextBlock",
+                        "text" : "TextBlock with fallback drop",
+                        "fallback" : "drop"
+                    },
+                    {
+                        "type": "TextBlock",
+                        "text" : "TextBlock with fallback content",
+                        "fallback" : 
+                        {
+                            "type": "TextBlock",
+                            "text" : "fallback content goes here"
+                        }
+                    }
+                ]
+            })card";
             auto parseResult = AdaptiveCard::DeserializeFromString(cardStr, "1.2");
             auto card = parseResult->GetAdaptiveCard();
             auto body = card->GetBody();
@@ -495,35 +495,35 @@ namespace AdaptiveCardsSharedModelUnitTest
         TEST_METHOD(ActionFallbackSerializationTest)
         {
             // Card without card-level selectAction
-            std::string cardStr = "{\
-                \"$schema\": \"http://adaptivecards.io/schemas/adaptive-card.json\",\
-                \"type\" : \"AdaptiveCard\",\
-                \"version\" : \"1.2\",\
-                \"body\" : [\
-                    {\
-                            \"type\": \"TextBlock\",\
-                            \"text\" : \"test text\"\
-                    }\
-                ],\
-               	\"actions\": [\
-               		{\
-               			\"type\": \"Action.Submit\",\
-               			\"title\": \"Drop Test\",\
-                        \"fallback\": \"drop\"\
-               		},\
-               		{\
-               			\"type\": \"Action.OpenUrl\",\
-               			\"title\": \"Content Test\",\
-                        \"url\": \"http://example.com/\",\
-                        \"fallback\": \
-                        {\
-               			    \"type\": \"Action.OpenUrl\",\
-               			    \"title\": \"Fallback content\",\
-                            \"url\": \"http://example.com/fallback/\"\
-                        }\
-               		}\
-               	]\
-            }";
+            std::string cardStr = R"card({
+                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                "type" : "AdaptiveCard",
+                "version" : "1.2",
+                "body" : [
+                    {
+                        "type": "TextBlock",
+                        "text" : "test text"
+                    }
+                ],
+               	"actions": [
+               		{
+               			"type": "Action.Submit",
+               			"title": "Drop Test",
+                        "fallback": "drop"
+               		},
+               		{
+               			"type": "Action.OpenUrl",
+               			"title": "Content Test",
+                        "url": "http://example.com/",
+                        "fallback": 
+                        {
+               			    "type": "Action.OpenUrl",
+               			    "title": "Fallback content",
+                            "url": "http://example.com/fallback/"
+                        }
+               		}
+               	]
+            })card";
             auto parseResult = AdaptiveCard::DeserializeFromString(cardStr, "1.2");
             auto card = parseResult->GetAdaptiveCard();
             auto actions = card->GetActions();
@@ -561,7 +561,8 @@ namespace AdaptiveCardsSharedModelUnitTest
                                 "type": "TextBlock",
                                 "text" : "3",
                                 "id": "3",
-                                "fallback": {
+                                "fallback":
+                                {
                                     "type": "TextBlock",
                                     "text" : "3 fallback (this is okay)",
                                     "id": "3"
@@ -571,7 +572,8 @@ namespace AdaptiveCardsSharedModelUnitTest
                                 "type": "TextBlock",
                                 "text" : "4",
                                 "id": "4",
-                                "fallback": {
+                                "fallback":
+                                {
                                     "type": "Container",
                                     "id": "4",
                                     "items": [
