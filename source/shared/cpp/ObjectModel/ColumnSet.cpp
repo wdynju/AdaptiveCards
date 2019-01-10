@@ -22,6 +22,21 @@ std::vector<std::shared_ptr<Column>>& ColumnSet::GetColumns()
     return m_columns;
 }
 
+std::unordered_set<std::string> ColumnSet::GetChildIds() const
+{
+    std::unordered_set<std::string> childIds;
+    for (const auto& childItem : m_columns)
+    {
+        auto childId = childItem->GetId();
+        if (!childId.empty())
+        {
+            childIds.emplace(childId);
+        }
+    }
+
+    return std::move(childIds);
+}
+
 std::shared_ptr<BaseActionElement> ColumnSet::GetSelectAction() const
 {
     return m_selectAction;

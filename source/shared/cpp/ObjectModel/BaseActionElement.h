@@ -18,7 +18,7 @@ namespace AdaptiveSharedNamespace
         BaseActionElement(BaseActionElement&&) = default;
         BaseActionElement& operator=(const BaseActionElement&) = default;
         BaseActionElement& operator=(BaseActionElement&&) = default;
-        virtual ~BaseActionElement() = default;
+        ~BaseActionElement() = default;
 
         virtual std::string GetElementTypeString() const;
         virtual void SetElementTypeString(const std::string& value);
@@ -28,6 +28,7 @@ namespace AdaptiveSharedNamespace
 
         virtual std::string GetId() const;
         virtual void SetId(const std::string& value);
+        virtual std::unordered_set<std::string> GetChildIds() const;
 
         virtual std::string GetIconUrl() const;
         virtual void SetIconUrl(const std::string& value);
@@ -71,14 +72,14 @@ namespace AdaptiveSharedNamespace
 
         ParseUtil::ThrowIfNotJsonObject(json);
 
-        ParseFallbackAndRequires(context, json, baseActionElement);
-
         baseActionElement->SetIconUrl(ParseUtil::GetString(json, AdaptiveCardSchemaKey::IconUrl));
         baseActionElement->SetId(ParseUtil::GetString(json, AdaptiveCardSchemaKey::Id));
         // TODO: Support requires
         baseActionElement->SetSentiment(
             ParseUtil::GetEnumValue<Sentiment>(json, AdaptiveCardSchemaKey::Sentiment, Sentiment::Default, SentimentFromString));
         baseActionElement->SetTitle(ParseUtil::GetString(json, AdaptiveCardSchemaKey::Title));
+
+        ParseFallbackAndRequires(context, json, *baseActionElement);
 
         // Walk all properties and put any unknown ones in the additional properties json
         for (auto it = json.begin(); it != json.end(); ++it)

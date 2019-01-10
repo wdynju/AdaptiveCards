@@ -36,6 +36,12 @@ std::string BaseActionElement::GetId() const
     return m_id;
 }
 
+std::unordered_set<std::string> BaseActionElement::GetChildIds() const
+{
+    std::unordered_set<std::string> emptySet{};
+    return std::move(emptySet);
+}
+
 void BaseActionElement::SetId(const std::string& value)
 {
     m_id = value;
@@ -76,8 +82,6 @@ Json::Value BaseActionElement::SerializeToJsonValue() const
 {
     Json::Value root = GetAdditionalProperties();
 
-    SerializeFallbackAndRequires(root);
-
     if (!m_iconUrl.empty())
     {
         root[AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::IconUrl)] = m_iconUrl;
@@ -96,6 +100,8 @@ Json::Value BaseActionElement::SerializeToJsonValue() const
     }
 
     root[AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Type)] = ActionTypeToString(m_type);
+
+    SerializeFallbackAndRequires(root);
 
     return root;
 }

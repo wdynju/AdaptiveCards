@@ -16,6 +16,7 @@ namespace AdaptiveSharedNamespace
         Container();
 
         Json::Value SerializeToJsonValue() const override;
+        std::unordered_set<std::string> GetChildIds() const override;
 
         std::vector<std::shared_ptr<BaseCardElement>>& GetItems();
         const std::vector<std::shared_ptr<BaseCardElement>>& GetItems() const;

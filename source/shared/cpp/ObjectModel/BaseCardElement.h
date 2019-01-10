@@ -21,7 +21,7 @@ namespace AdaptiveSharedNamespace
         BaseCardElement(BaseCardElement&&) = default;
         BaseCardElement& operator=(const BaseCardElement&) = default;
         BaseCardElement& operator=(BaseCardElement&&) = default;
-        virtual ~BaseCardElement() = default;
+        ~BaseCardElement() = default;
 
         virtual std::string GetElementTypeString() const;
         virtual void SetElementTypeString(const std::string& value);
@@ -36,6 +36,7 @@ namespace AdaptiveSharedNamespace
         virtual void SetSpacing(const Spacing value);
 
         virtual std::string GetId() const;
+        virtual std::unordered_set<std::string> GetChildIds() const;
         virtual void SetId(const std::string& value);
 
         virtual bool GetIsVisible() const;
@@ -80,8 +81,6 @@ namespace AdaptiveSharedNamespace
 
         ParseUtil::ThrowIfNotJsonObject(json);
 
-        ParseFallbackAndRequires(context, json, baseCardElement);
-
         baseCardElement->SetHeight(
             ParseUtil::GetEnumValue<HeightType>(json, AdaptiveCardSchemaKey::Height, HeightType::Auto, HeightTypeFromString));
         baseCardElement->SetId(ParseUtil::GetString(json, AdaptiveCardSchemaKey::Id));
@@ -89,6 +88,8 @@ namespace AdaptiveSharedNamespace
         baseCardElement->SetSeparator(ParseUtil::GetBool(json, AdaptiveCardSchemaKey::Separator, false));
         baseCardElement->SetSpacing(
             ParseUtil::GetEnumValue<Spacing>(json, AdaptiveCardSchemaKey::Spacing, Spacing::Default, SpacingFromString));
+
+        ParseFallbackAndRequires(context, json, *baseCardElement);
 
         // Walk all properties and put any unknown ones in the additional properties json
         for (auto it = json.begin(); it != json.end(); ++it)

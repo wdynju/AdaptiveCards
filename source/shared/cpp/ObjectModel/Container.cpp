@@ -23,6 +23,21 @@ std::vector<std::shared_ptr<BaseCardElement>>& Container::GetItems()
     return m_items;
 }
 
+std::unordered_set<std::string> Container::GetChildIds() const
+{
+    std::unordered_set<std::string> childIds;
+    for (const auto& childItem : m_items)
+    {
+        auto childId = childItem->GetId();
+        if (!childId.empty())
+        {
+            childIds.emplace(childId);
+        }
+    }
+
+    return std::move(childIds);
+}
+
 ContainerStyle Container::GetStyle() const
 {
     return m_style;

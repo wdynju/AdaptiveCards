@@ -3,6 +3,7 @@
 #include "Media.h"
 #include "TextBlock.h"
 #include "SharedAdaptiveCard.h"
+#include "Container.h"
 #include "ShowCardAction.h"
 #include "SubmitAction.h"
 #include "OpenUrlAction.h"
@@ -494,7 +495,6 @@ namespace AdaptiveCardsSharedModelUnitTest
 
         TEST_METHOD(ActionFallbackSerializationTest)
         {
-            // Card without card-level selectAction
             std::string cardStr = R"card({
                 "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
                 "type" : "AdaptiveCard",
@@ -540,9 +540,8 @@ namespace AdaptiveCardsSharedModelUnitTest
                 "{\"actions\":[{\"fallback\":\"drop\",\"id\":\"\",\"title\":\"Drop Test\",\"type\":\"Action.Submit\"},{\"fallback\":{\"id\":\"\",\"title\":\"Fallback content\",\"type\":\"Action.OpenUrl\",\"url\":\"http://example.com/fallback/\"},\"id\":\"\",\"title\":\"Content Test\",\"type\":\"Action.OpenUrl\",\"url\":\"http://example.com/\"}],\"body\":[{\"text\":\"test text\",\"type\":\"TextBlock\"}],\"type\":\"AdaptiveCard\",\"version\":\"1.2\"}\n");
         }
 
-        TEST_METHOD(FallbackDuplicateTest)
+        TEST_METHOD(FallbackSimpleDuplicateTest)
         {
-            // Card without card-level selectAction
             std::string cardStr = R"card({
                 "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
                 "type" : "AdaptiveCard",
@@ -589,9 +588,211 @@ namespace AdaptiveCardsSharedModelUnitTest
                     }
                 ]
             })card";
+            Assert::ExpectException<AdaptiveCardParseException>([&]() { AdaptiveCard::DeserializeFromString(cardStr, "1.2"); });
+        }
+
+        TEST_METHOD(ElementFallbackDeepIdCollision)
+        {
+            std::string cardStr = R"card({
+              "type": "AdaptiveCard",
+              "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+              "version": "1.2",
+              "body": [
+                {
+                  "type": "Container",
+                  "id": "A",
+                  "items": [
+                    {
+                      "type": "Container",
+                      "id": "B",
+                      "fallback": {
+                        "type": "Container",
+                        "id": "B",
+                        "items": [
+                          {
+                            "type": "TextBlock",
+                            "text": "B Container fallback textblock"
+                          },
+                          {
+                            "type": "Image",
+                            "url": "http://adaptivecards.io/content/cats/1.png"
+                          }
+                        ]
+                      },
+                      "items": [
+                        {
+                          "type": "ColumnSet",
+                          "id": "C",
+                          "columns": [
+                            {
+                              "type": "Column",
+                              "id": "D",
+                              "items": [
+                                {
+                                  "type": "Graph",
+                                  "id": "E",
+                                  "someProperty": "blah",
+                                  "fallback": {
+                                    "type": "Container",
+                                    "id": "E",
+                                    "items": [
+                                      {
+                                        "type": "Image",
+                                        "id": "I",
+                                        "url": "http://adaptivecards.io/content/cats/2.png"
+                                      },
+                                      {
+                                        "type": "TextBlock",
+                                        "id": "J",
+                                        "text": "C ColumnSet fallback textblock"
+                                      }
+                                    ]
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "TextBlock",
+                  "id": "F",
+                  "text": "F TextBlock"
+                },
+                {
+                  "type": "Input.Text",
+                  "id": "G",
+                  "placeholder": "G Input.Text"
+                },
+                {
+                  "type": "Graph",
+                  "id": "H",
+                  "someProperty": "foo",
+                  "fallback": {
+                    "type": "Container",
+                    "id": "E",
+                    "items": [
+                      {
+                        "type": "TextBlock",
+                        "id": "K",
+                        "text": "H Graph fallback TextBlock"
+                      }
+                    ]
+                  }
+                }
+              ]
+            })card";
+            Assert::ExpectException<AdaptiveCardParseException>([&]() { AdaptiveCard::DeserializeFromString(cardStr, "1.2"); });
+        }
+
+        TEST_METHOD(ElementFallbackDeepIdOkay)
+        {
+            std::string cardStr = R"card({
+              "type": "AdaptiveCard",
+              "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+              "version": "1.2",
+              "body": [
+                {
+                  "type": "Container",
+                  "id": "A",
+                  "items": [
+                    {
+                      "type": "Container",
+                      "id": "B",
+                      "fallback": {
+                        "type": "Container",
+                        "id": "B",
+                        "items": [
+                          {
+                            "type": "TextBlock",
+                            "id": "C",
+                            "text": "B Container fallback textblock"
+                          },
+                          {
+                            "type": "Image",
+                            "id": "Z",
+                            "url": "http://adaptivecards.io/content/cats/1.png"
+                          }
+                        ]
+                      },
+                      "items": [
+                        {
+                          "type": "ColumnSet",
+                          "id": "C",
+                          "columns": [
+                            {
+                              "type": "Column",
+                              "id": "D",
+                              "items": [
+                                {
+                                  "type": "Graph",
+                                  "id": "E",
+                                  "someProperty": "blah",
+                                  "fallback": {
+                                    "type": "Container",
+                                    "id": "E",
+                                    "items": [
+                                      {
+                                        "type": "Image",
+                                        "id": "I",
+                                        "url": "http://adaptivecards.io/content/cats/2.png"
+                                      },
+                                      {
+                                        "type": "TextBlock",
+                                        "id": "J",
+                                        "text": "C ColumnSet fallback textblock"
+                                      }
+                                    ]
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "TextBlock",
+                  "id": "F",
+                  "text": "F TextBlock"
+                },
+                {
+                  "type": "Input.Text",
+                  "id": "G",
+                  "placeholder": "G Input.Text"
+                },
+                {
+                  "type": "Graph",
+                  "id": "H",
+                  "someProperty": "foo",
+                  "fallback": {
+                    "type": "Container",
+                    "id": "L",
+                    "items": [
+                      {
+                        "type": "TextBlock",
+                        "id": "K",
+                        "text": "H Graph fallback TextBlock"
+                      }
+                    ]
+                  }
+                }
+              ]
+            })card";
             auto parseResult = AdaptiveCard::DeserializeFromString(cardStr, "1.2");
             auto card = parseResult->GetAdaptiveCard();
             auto body = card->GetBody();
+            auto containerA = std::static_pointer_cast<Container>(body.at(0));
+            Assert::IsTrue(containerA->GetId() == "A");
+            auto containerAB = std::static_pointer_cast<Container>(containerA->GetItems()[0]);
+            Assert::IsTrue(containerAB->GetId() == "B");
+            auto containerABFallbackContainer = std::static_pointer_cast<Container>(containerAB->GetFallbackContent());
+            Assert::IsTrue(containerABFallbackContainer->GetId() == "B");
         }
     };
 }
