@@ -5,11 +5,11 @@
 #include "json/json.h"
 #include "ParseUtil.h"
 #include "RemoteResourceInformation.h"
-#include "BaseElementFallback.h"
+#include "BaseElement.h"
 
 namespace AdaptiveSharedNamespace
 {
-    class BaseActionElement : public BaseElementFallback<BaseActionElement>
+    class BaseActionElement : public BaseElement<BaseActionElement>
     {
     public:
         BaseActionElement(ActionType type);

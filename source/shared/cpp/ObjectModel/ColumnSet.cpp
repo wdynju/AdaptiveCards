@@ -25,13 +25,17 @@ std::vector<std::shared_ptr<Column>>& ColumnSet::GetColumns()
 std::unordered_set<std::string> ColumnSet::GetChildIds() const
 {
     std::unordered_set<std::string> childIds;
-    for (const auto& childItem : m_columns)
+    for (auto childItem : m_columns)
     {
         auto childId = childItem->GetId();
         if (!childId.empty())
         {
             childIds.emplace(childId);
         }
+        std::unordered_set<std::string> descendentIds = childItem->GetChildIds();
+        childIds.merge(descendentIds);
+        std::unordered_set<std::string> descendentFallbackIds = childItem->GetFallbackIds();
+        childIds.merge(descendentFallbackIds);
     }
 
     return std::move(childIds);

@@ -4,33 +4,25 @@
 
 namespace AdaptiveSharedNamespace
 {
-    template <typename T>
-    class BaseElementFallback
+    template<typename T> class BaseElement
     {
     public:
-        BaseElementFallback() : m_requires(0), m_fallbackIds(0), m_fallbackContent(nullptr), m_fallbackType(FallbackType::None)
+        BaseElement() :
+            m_requires(0), m_fallbackIds(0), m_fallbackContent(nullptr), m_fallbackType(FallbackType::None),
+            m_internalId(BaseElement::GetNextInternalId())
         {
         }
 
-        virtual FallbackType GetFallbackType() const
-        {
-            return m_fallbackType;
-        }
+        virtual FallbackType GetFallbackType() const { return m_fallbackType; }
 
         virtual bool MeetsRequirements(const std::unordered_map<std::string, std::string>& /*hostProvides*/) const
         {
             return true;
         }
 
-        virtual std::shared_ptr<T> GetFallbackContent() const
-        {
-            return m_fallbackContent;
-        }
+        virtual std::shared_ptr<T> GetFallbackContent() const { return m_fallbackContent; }
 
-        virtual std::unordered_set<std::string> GetFallbackIds() const
-        {
-            return m_fallbackIds;
-        }
+        virtual std::unordered_set<std::string> GetFallbackIds() const { return m_fallbackIds; }
 
         virtual void SerializeFallbackAndRequires(Json::Value& root) const
         {
@@ -45,7 +37,6 @@ namespace AdaptiveSharedNamespace
         }
 
     private:
-
         void SerializeFallback(Json::Value& root) const
         {
             if (m_fallbackType == FallbackType::Drop)
@@ -58,8 +49,12 @@ namespace AdaptiveSharedNamespace
             }
         }
 
-        void SerializeRequires(Json::Value& /*root*/) const
+        void SerializeRequires(Json::Value& /*root*/) const {}
+
+        static unsigned int GetNextInternalId()
         {
+            static unsigned int nextId = 1;
+            return nextId++;
         }
 
         static void ParseFallback(ParseContext& context, const Json::Value& json, T& baseElement)
@@ -79,17 +74,20 @@ namespace AdaptiveSharedNamespace
                 else if (fallbackValue.isObject())
                 {
                     // fallback value is a JSON object. parse it and add it as fallback content.
-                    context.EnterFallback();
                     std::shared_ptr<T> fallbackElement;
                     T::ParseJsonObject(context, fallbackValue, fallbackElement);
-                    context.ExitFallback();
 
                     if (fallbackElement)
                     {
                         baseElement.m_fallbackType = FallbackType::Content;
                         baseElement.m_fallbackContent = fallbackElement;
                         baseElement.m_fallbackIds = fallbackElement->GetChildIds();
-                        baseElement.m_fallbackIds.emplace(fallbackElement->GetId());
+                        const auto fallbackId = fallbackElement->GetId();
+                        if (!fallbackId.empty())
+                        {
+                            baseElement.m_fallbackIds.emplace(fallbackId);
+                        }
+
                         return;
                     }
                 }
@@ -97,13 +95,12 @@ namespace AdaptiveSharedNamespace
             }
         }
 
-        static void ParseRequires(ParseContext& /*context*/, const Json::Value& /*json*/, T& /*baseElement*/)
-        {
-        }
+        static void ParseRequires(ParseContext& /*context*/, const Json::Value& /*json*/, T& /*baseElement*/) {}
 
         std::unordered_map<std::string, std::string> m_requires;
         std::unordered_set<std::string> m_fallbackIds;
         std::shared_ptr<T> m_fallbackContent;
         FallbackType m_fallbackType;
+        const unsigned int m_internalId;
     };
 }

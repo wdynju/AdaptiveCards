@@ -26,13 +26,17 @@ std::vector<std::shared_ptr<BaseCardElement>>& Container::GetItems()
 std::unordered_set<std::string> Container::GetChildIds() const
 {
     std::unordered_set<std::string> childIds;
-    for (const auto& childItem : m_items)
+    for (auto childItem : m_items)
     {
         auto childId = childItem->GetId();
         if (!childId.empty())
         {
             childIds.emplace(childId);
         }
+        std::unordered_set<std::string> descendentIds = childItem->GetChildIds();
+        childIds.merge(descendentIds);
+        std::unordered_set<std::string> descendentFallbackIds = childItem->GetFallbackIds();
+        childIds.merge(descendentFallbackIds);
     }
 
     return std::move(childIds);

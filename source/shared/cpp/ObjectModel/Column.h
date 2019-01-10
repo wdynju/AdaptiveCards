@@ -15,6 +15,7 @@ namespace AdaptiveSharedNamespace
 
         std::string Serialize() const override;
         Json::Value SerializeToJsonValue() const override;
+        std::unordered_set<std::string> GetChildIds() const override;
 
         static std::shared_ptr<Column> Deserialize(ParseContext& context, const Json::Value& root);
 

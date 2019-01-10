@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "BaseCardElement.h"
-#include "BaseElementFallback.h"
+#include "BaseElement.h"
 #include "ShowCardAction.h"
 #include "OpenUrlAction.h"
 #include "ParseUtil.h"
@@ -196,7 +196,7 @@ void BaseCardElement::ParseJsonObject(ParseContext& context, const Json::Value& 
         std::unordered_set<std::string> childIds = parsedElement->GetChildIds();
         unionOfIds.merge(childIds);
 
-        if (!context.InFallback() && unionOfIds.size() > 0)
+        if (unionOfIds.size() > 0)
         {
             auto elementIds = context.elementIds;
             auto elementIdsEnd = elementIds->end();
@@ -210,7 +210,7 @@ void BaseCardElement::ParseJsonObject(ParseContext& context, const Json::Value& 
             }
 
             // no collision -- merge into context id tracking
-            context.elementIds->merge(unionOfIds);
+            //context.elementIds->merge(unionOfIds);
         }
 
         element = parsedElement;

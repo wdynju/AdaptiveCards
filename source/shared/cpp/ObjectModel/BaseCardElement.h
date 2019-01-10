@@ -4,14 +4,14 @@
 #include "Enums.h"
 #include "json/json.h"
 #include "BaseActionElement.h"
-#include "BaseElementFallback.h"
+#include "BaseElement.h"
 #include "ParseUtil.h"
 #include "Separator.h"
 #include "RemoteResourceInformation.h"
 
 namespace AdaptiveSharedNamespace
 {
-    class BaseCardElement : public BaseElementFallback<BaseCardElement>
+    class BaseCardElement : public BaseElement<BaseCardElement>
     {
     public:
         BaseCardElement(CardElementType type, Spacing spacing, bool separator, HeightType height);
@@ -81,9 +81,12 @@ namespace AdaptiveSharedNamespace
 
         ParseUtil::ThrowIfNotJsonObject(json);
 
+        baseCardElement->SetId(ParseUtil::GetString(json, AdaptiveCardSchemaKey::Id));
+
+        context.idStack.push_back({ baseCardElement->GetId(), ""});
+
         baseCardElement->SetHeight(
             ParseUtil::GetEnumValue<HeightType>(json, AdaptiveCardSchemaKey::Height, HeightType::Auto, HeightTypeFromString));
-        baseCardElement->SetId(ParseUtil::GetString(json, AdaptiveCardSchemaKey::Id));
         baseCardElement->SetIsVisible(ParseUtil::GetBool(json, AdaptiveCardSchemaKey::IsVisible, true));
         baseCardElement->SetSeparator(ParseUtil::GetBool(json, AdaptiveCardSchemaKey::Separator, false));
         baseCardElement->SetSpacing(

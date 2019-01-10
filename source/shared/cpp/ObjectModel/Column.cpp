@@ -13,6 +13,25 @@ Column::Column() :
     PopulateKnownPropertiesSet();
 }
 
+std::unordered_set<std::string> Column::GetChildIds() const
+{
+    std::unordered_set<std::string> childIds;
+    for (auto childItem : m_items)
+    {
+        auto childId = childItem->GetId();
+        if (!childId.empty())
+        {
+            childIds.emplace(childId);
+        }
+        std::unordered_set<std::string> descendentIds = childItem->GetChildIds();
+        childIds.merge(descendentIds);
+        std::unordered_set<std::string> descendentFallbackIds = childItem->GetFallbackIds();
+        childIds.merge(descendentFallbackIds);
+    }
+
+    return std::move(childIds);
+}
+
 std::string Column::GetWidth() const
 {
     return m_width;

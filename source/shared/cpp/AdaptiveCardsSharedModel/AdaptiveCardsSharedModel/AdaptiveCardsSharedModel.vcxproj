@@ -202,7 +202,7 @@
     <ClInclude Include="..\..\ObjectModel\AdaptiveBase64Util.h" />
     <ClInclude Include="..\..\ObjectModel\AdaptiveCardParseException.h" />
     <ClInclude Include="..\..\ObjectModel\AdaptiveCardParseWarning.h" />
-    <ClInclude Include="..\..\ObjectModel\BaseElementFallback.h" />
+    <ClInclude Include="..\..\ObjectModel\BaseElement.h" />
     <ClInclude Include="..\..\ObjectModel\ParseContext.h" />
     <ClInclude Include="..\..\ObjectModel\SemanticVersion.h" />
     <ClInclude Include="..\..\ObjectModel\BaseActionElement.h" />
