@@ -22,25 +22,6 @@ std::vector<std::shared_ptr<Column>>& ColumnSet::GetColumns()
     return m_columns;
 }
 
-std::unordered_set<std::string> ColumnSet::GetChildIds() const
-{
-    std::unordered_set<std::string> childIds;
-    for (auto childItem : m_columns)
-    {
-        auto childId = childItem->GetId();
-        if (!childId.empty())
-        {
-            childIds.emplace(childId);
-        }
-        std::unordered_set<std::string> descendentIds = childItem->GetChildIds();
-        childIds.merge(descendentIds);
-        std::unordered_set<std::string> descendentFallbackIds = childItem->GetFallbackIds();
-        childIds.merge(descendentFallbackIds);
-    }
-
-    return std::move(childIds);
-}
-
 std::shared_ptr<BaseActionElement> ColumnSet::GetSelectAction() const
 {
     return m_selectAction;
@@ -86,7 +67,9 @@ std::shared_ptr<BaseCardElement> ColumnSetParser::Deserialize(ParseContext& cont
     auto container = BaseCardElement::Deserialize<ColumnSet>(context, value);
 
     // Parse Columns
+    context.PushElement({ container->GetId(), container->GetInternalId(), false});
     auto cardElements = ParseUtil::GetElementCollectionOfSingleType<Column>(context, value, AdaptiveCardSchemaKey::Columns, Column::Deserialize, false);
+    context.PopElement();
     container->m_columns = std::move(cardElements);
 
     // Parse optional selectAction

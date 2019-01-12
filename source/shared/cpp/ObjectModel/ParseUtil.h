@@ -71,10 +71,8 @@ namespace AdaptiveSharedNamespace
                                                                             AdaptiveCardSchemaKey key,
                                                                             bool isRequired = false);
 
-        std::shared_ptr<BaseActionElement> GetAction(ParseContext& context,
-                                                     const Json::Value& json,
-                                                     AdaptiveCardSchemaKey key,
-                                                     bool isRequired = false);
+        std::shared_ptr<BaseActionElement>
+        GetAction(ParseContext& context, const Json::Value& json, AdaptiveCardSchemaKey key, bool isRequired = false);
 
         template<typename T>
         T ExtractJsonValueAndMergeWithDefault(const Json::Value& rootJson,

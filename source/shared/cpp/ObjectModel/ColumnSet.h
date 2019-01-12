@@ -16,7 +16,6 @@ namespace AdaptiveSharedNamespace
         ColumnSet();
 
         Json::Value SerializeToJsonValue() const override;
-        std::unordered_set<std::string> GetChildIds() const override;
 
         std::vector<std::shared_ptr<Column>>& GetColumns();
         const std::vector<std::shared_ptr<Column>>& GetColumns() const;

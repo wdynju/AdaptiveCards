@@ -23,25 +23,6 @@ std::vector<std::shared_ptr<BaseCardElement>>& Container::GetItems()
     return m_items;
 }
 
-std::unordered_set<std::string> Container::GetChildIds() const
-{
-    std::unordered_set<std::string> childIds;
-    for (auto childItem : m_items)
-    {
-        auto childId = childItem->GetId();
-        if (!childId.empty())
-        {
-            childIds.emplace(childId);
-        }
-        std::unordered_set<std::string> descendentIds = childItem->GetChildIds();
-        childIds.merge(descendentIds);
-        std::unordered_set<std::string> descendentFallbackIds = childItem->GetFallbackIds();
-        childIds.merge(descendentFallbackIds);
-    }
-
-    return std::move(childIds);
-}
-
 ContainerStyle Container::GetStyle() const
 {
     return m_style;
@@ -113,6 +94,7 @@ std::shared_ptr<BaseCardElement> ContainerParser::Deserialize(ParseContext& cont
     ParseUtil::ExpectTypeString(value, CardElementType::Container);
 
     auto container = BaseCardElement::Deserialize<Container>(context, value);
+    context.PushElement({ container->GetId(), container->GetInternalId(), false});
 
     container->SetStyle(ParseUtil::GetEnumValue<ContainerStyle>(value, AdaptiveCardSchemaKey::Style, ContainerStyle::None, ContainerStyleFromString));
 
@@ -125,6 +107,8 @@ std::shared_ptr<BaseCardElement> ContainerParser::Deserialize(ParseContext& cont
 
     // Parse optional selectAction
     container->SetSelectAction(ParseUtil::GetAction(context, value, AdaptiveCardSchemaKey::SelectAction, false));
+
+    context.PopElement();
 
     return container;
 }

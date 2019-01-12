@@ -106,7 +106,9 @@ std::shared_ptr<BaseCardElement> ChoiceSetInputParser::Deserialize(ParseContext&
     choiceSet->SetWrap(ParseUtil::GetBool(json, AdaptiveCardSchemaKey::Wrap, false, false));
 
     // Parse Choices
+    context.PushElement({ choiceSet->GetId(), choiceSet->GetInternalId(), false });
     auto choices = ParseUtil::GetElementCollectionOfSingleType<ChoiceInput>(context, json, AdaptiveCardSchemaKey::Choices, ChoiceInput::Deserialize, true);
+    context.PopElement();
     choiceSet->m_choices = std::move(choices);
 
     return choiceSet;

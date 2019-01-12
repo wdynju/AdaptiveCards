@@ -1,9 +1,11 @@
 #pragma once
 
 #include "pch.h"
+#include "json/json.h"
 
 namespace AdaptiveSharedNamespace
 {
+    class ParseContext;
     template<typename T> class BaseElement
     {
     public:
@@ -34,6 +36,11 @@ namespace AdaptiveSharedNamespace
         {
             ParseFallback(context, json, baseElement);
             ParseRequires(context, json, baseElement);
+        }
+
+        virtual unsigned int GetInternalId() const
+        {
+            return m_internalId;
         }
 
     private:
@@ -74,6 +81,7 @@ namespace AdaptiveSharedNamespace
                 else if (fallbackValue.isObject())
                 {
                     // fallback value is a JSON object. parse it and add it as fallback content.
+                    context.PushElement({ baseElement.GetId(), baseElement.GetInternalId(), true });
                     std::shared_ptr<T> fallbackElement;
                     T::ParseJsonObject(context, fallbackValue, fallbackElement);
 
@@ -81,15 +89,11 @@ namespace AdaptiveSharedNamespace
                     {
                         baseElement.m_fallbackType = FallbackType::Content;
                         baseElement.m_fallbackContent = fallbackElement;
-                        baseElement.m_fallbackIds = fallbackElement->GetChildIds();
-                        const auto fallbackId = fallbackElement->GetId();
-                        if (!fallbackId.empty())
-                        {
-                            baseElement.m_fallbackIds.emplace(fallbackId);
-                        }
 
                         return;
                     }
+
+                    context.PopElement();
                 }
                 throw AdaptiveCardParseException(ErrorStatusCode::InvalidPropertyValue, "Invalid value for fallback");
             }

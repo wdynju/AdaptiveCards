@@ -13,25 +13,6 @@ Column::Column() :
     PopulateKnownPropertiesSet();
 }
 
-std::unordered_set<std::string> Column::GetChildIds() const
-{
-    std::unordered_set<std::string> childIds;
-    for (auto childItem : m_items)
-    {
-        auto childId = childItem->GetId();
-        if (!childId.empty())
-        {
-            childIds.emplace(childId);
-        }
-        std::unordered_set<std::string> descendentIds = childItem->GetChildIds();
-        childIds.merge(descendentIds);
-        std::unordered_set<std::string> descendentFallbackIds = childItem->GetFallbackIds();
-        childIds.merge(descendentFallbackIds);
-    }
-
-    return std::move(childIds);
-}
-
 std::string Column::GetWidth() const
 {
     return m_width;
@@ -128,6 +109,7 @@ Json::Value Column::SerializeToJsonValue() const
 std::shared_ptr<Column> Column::Deserialize(ParseContext& context, const Json::Value& value)
 {
     auto column = BaseCardElement::Deserialize<Column>(context, value);
+    context.PushElement({ column->GetId(), column->GetInternalId(), false});
 
     std::string columnWidth = ParseUtil::GetValueAsString(value, AdaptiveCardSchemaKey::Width);
     if (columnWidth == "")
@@ -156,6 +138,7 @@ std::shared_ptr<Column> Column::Deserialize(ParseContext& context, const Json::V
 
     // Parse Items
     auto cardElements = ParseUtil::GetElementCollection(context, value, AdaptiveCardSchemaKey::Items, false);
+    context.PopElement();
     column->m_items = std::move(cardElements);
 
     // Parse optional selectAction

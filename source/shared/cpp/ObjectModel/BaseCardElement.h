@@ -36,7 +36,6 @@ namespace AdaptiveSharedNamespace
         virtual void SetSpacing(const Spacing value);
 
         virtual std::string GetId() const;
-        virtual std::unordered_set<std::string> GetChildIds() const;
         virtual void SetId(const std::string& value);
 
         virtual bool GetIsVisible() const;
@@ -82,8 +81,6 @@ namespace AdaptiveSharedNamespace
         ParseUtil::ThrowIfNotJsonObject(json);
 
         baseCardElement->SetId(ParseUtil::GetString(json, AdaptiveCardSchemaKey::Id));
-
-        context.idStack.push_back({ baseCardElement->GetId(), ""});
 
         baseCardElement->SetHeight(
             ParseUtil::GetEnumValue<HeightType>(json, AdaptiveCardSchemaKey::Height, HeightType::Auto, HeightTypeFromString));

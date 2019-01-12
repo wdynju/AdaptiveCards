@@ -313,7 +313,8 @@ namespace AdaptiveSharedNamespace
             }
             else
             {
-                throw AdaptiveCardParseException(ErrorStatusCode::IdCollision, "Duplicate identifier encountered: id = '" + id + "'");
+                throw AdaptiveCardParseException(ErrorStatusCode::IdCollision,
+                                                 "Duplicate identifier encountered: id = '" + id + "'");
             }
         }
     }
@@ -386,7 +387,8 @@ namespace AdaptiveSharedNamespace
             auto action = ParseUtil::GetActionFromJsonValue(context, curJsonValue);
             if (action != nullptr)
             {
-                AddId(*action, *(context.elementIds));
+                //TODO: something
+                //AddId(*action, *(context.elementIds));
                 elements.push_back(action);
             }
         }
@@ -394,8 +396,7 @@ namespace AdaptiveSharedNamespace
         return elements;
     }
 
-    std::shared_ptr<BaseActionElement>
-    ParseUtil::GetAction(ParseContext& context, const Json::Value& json, AdaptiveCardSchemaKey key, bool isRequired)
+    std::shared_ptr<BaseActionElement> ParseUtil::GetAction(ParseContext& context, const Json::Value& json, AdaptiveCardSchemaKey key, bool isRequired)
     {
         auto selectAction = ParseUtil::ExtractJsonValue(json, key, isRequired);
 

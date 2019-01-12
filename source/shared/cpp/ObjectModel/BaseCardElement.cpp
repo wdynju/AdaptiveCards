@@ -24,7 +24,8 @@ BaseCardElement::BaseCardElement(CardElementType type) :
 
 void BaseCardElement::PopulateKnownPropertiesSet()
 {
-    m_knownProperties.insert({AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Fallback),
+    m_knownProperties.insert({AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Id),
+                              AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Fallback),
                               AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Height),
                               AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::IsVisible),
                               AdaptiveCardSchemaKeyToString(AdaptiveCardSchemaKey::Separator),
@@ -76,12 +77,6 @@ void BaseCardElement::SetHeight(const HeightType value)
 std::string BaseCardElement::GetId() const
 {
     return m_id;
-}
-
-std::unordered_set<std::string> BaseCardElement::GetChildIds() const
-{
-    std::unordered_set<std::string> emptySet{};
-    return std::move(emptySet);
 }
 
 void BaseCardElement::SetId(const std::string& value)
@@ -182,36 +177,7 @@ void BaseCardElement::ParseJsonObject(ParseContext& context, const Json::Value& 
     auto parsedElement = parser->Deserialize(context, json);
     if (parsedElement != nullptr)
     {
-        std::unordered_set<std::string> unionOfIds;
-
-        std::string elementId = parsedElement->GetId();
-        if (!elementId.empty())
-        {
-            unionOfIds.emplace(elementId);
-        }
-
-        std::unordered_set<std::string> fallbackIds = parsedElement->GetFallbackIds();
-        unionOfIds.merge(fallbackIds);
-
-        std::unordered_set<std::string> childIds = parsedElement->GetChildIds();
-        unionOfIds.merge(childIds);
-
-        if (unionOfIds.size() > 0)
-        {
-            auto elementIds = context.elementIds;
-            auto elementIdsEnd = elementIds->end();
-            for (const auto& id : unionOfIds)
-            {
-                if (elementIds->find(id) != elementIdsEnd)
-                {
-                    // collision!
-                    throw AdaptiveCardParseException(ErrorStatusCode::IdCollision, "Id collision detected. Colliding id: " + id);
-                }
-            }
-
-            // no collision -- merge into context id tracking
-            //context.elementIds->merge(unionOfIds);
-        }
+        // collision detect here?
 
         element = parsedElement;
         return;
