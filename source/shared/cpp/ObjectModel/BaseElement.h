@@ -89,7 +89,7 @@ namespace AdaptiveSharedNamespace
                     {
                         baseElement.m_fallbackType = FallbackType::Content;
                         baseElement.m_fallbackContent = fallbackElement;
-
+                        context.PopElement();
                         return;
                     }
 

@@ -27,7 +27,11 @@ namespace AdaptiveSharedNamespace
 
     private:
         unsigned int GetNearestFallbackId() const;
+
+        // ID, internal ID, isFallback
         std::vector<std::tuple<std::string, unsigned int, bool>> m_idStack;
-        std::vector<std::pair<std::string, unsigned int>> m_elementIds;
+
+        // ID -> internal ID, fallback ID
+        std::unordered_multimap<std::string, std::pair<unsigned int, unsigned int>> m_elementIds;
     };
 }

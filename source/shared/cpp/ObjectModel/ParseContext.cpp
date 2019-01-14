@@ -43,39 +43,80 @@ namespace AdaptiveSharedNamespace
         const auto& idsToPop = m_idStack.back();
         const std::string& elementId {std::get<0>(idsToPop)};
         const unsigned int elementInternalId {std::get<1>(idsToPop)};
-        const unsigned int elementFallbackId {std::get<2>(idsToPop)};
+        const bool isFallback {std::get<2>(idsToPop)};
 
-        if (elementInternalId == ParseContext::NonFallbackId)
-        {
-            //throw AdaptiveCardParseException(ErrorStatusCode::InvalidPropertyValue, "Unexpected state when popping element");
-        }
+        // if (elementInternalId == ParseContext::NonFallbackId)
+        // {
+        //     //throw AdaptiveCardParseException(ErrorStatusCode::InvalidPropertyValue, "Unexpected state when popping element");
+        // }
 
         // check element ids list to see if item is already in list.
         if (!elementId.empty())
         {
-            bool fFoundEntry = false;
-            for (const auto& elementIdsFromList : m_elementIds)
+            const unsigned int nearestFallbackId = GetNearestFallbackId();
+            bool foundEntry = false;
+            bool haveSeenFallbackEntry = false;
+            for (auto currentEntry = m_elementIds.find(elementId); currentEntry != m_elementIds.end(); ++currentEntry)
             {
-                if (elementIdsFromList.first == elementId)
+                foundEntry = true;
+
+                const unsigned int entryInternalId = currentEntry->second.first;
+                const unsigned int entryFallbackId = currentEntry->second.second;
+
+                // three possibilities:
+
+                // 1. We're seeing this element for the second time. This can happen if we're parsing an element
+                // that has children AND fallback. If this is the case, there's no collision.
+                if (entryInternalId == elementInternalId)
                 {
-                    fFoundEntry = true;
-                    const auto elementFallbackIdFromList = elementIdsFromList.second;
-                    if (elementFallbackIdFromList == ParseContext::NonFallbackId)
+                    break;
+                }
+
+                if (entryFallbackId == elementInternalId)
+                {
+                    break;
+                }
+
+                try
+                {
+                    const auto& previousInStack = m_idStack.at(m_idStack.size()-2);
+                    if (std::get<1>(previousInStack) == entryFallbackId)
                     {
-                        //throw AdaptiveCardParseException(ErrorStatusCode::IdCollision, "Id collision detected: " + elementId);
+                        // we're looking at a fallback entry for our parent
+                        break;
                     }
                 }
+                catch (const std::out_of_range&)
+                {
+                    throw AdaptiveCardParseException(ErrorStatusCode::IdCollision, "something important");
+                }
+
+                // 2. This element is fallback content, and is allowed to share an ID with its fallback parent. To check
+                // if this is the case, first see if the nearest fallback element has the same ID. If the nearest
+                // fallback element's ID is the same, there's no collision iff m_elementIds doesn't have an existing
+                // entry for this fallback ID.
+                if (isFallback && nearestFallbackId != ParseContext::NonFallbackId && nearestFallbackId == entryFallbackId)
+                {
+                    if (haveSeenFallbackEntry)
+                    {
+                        throw AdaptiveCardParseException(ErrorStatusCode::IdCollision, "something important");
+                    }
+                    else
+                    {
+                        haveSeenFallbackEntry = true;
+                    }
+                    continue;
+                }
+
+                // 3. This element is actually colliding with an existing id.
+                throw AdaptiveCardParseException(ErrorStatusCode::IdCollision, "something important");
             }
 
-            if (!fFoundEntry)
+            if (!foundEntry)
             {
-                m_elementIds.push_back({ elementId, elementFallbackId });
+                m_elementIds.emplace(std::make_pair(elementId, std::make_pair(elementInternalId, nearestFallbackId)));
             }
         }
-
-        // if not, add to list with fallback id.
-        // if item is in list with no fallback id, throw exception.
-        // if item is in list and has fallback id, throw if list's fallback id is not in parent chain(??)
 
         m_idStack.pop_back();
     }
